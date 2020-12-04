@@ -1,0 +1,44 @@
+#include<iostream>
+using namespace std;
+const int N = 18;
+/*根据检测数据，可以支持15个城市的计算而避免超时，如果超过15个可能超时，请根据情况进一步剪枝
+这里给出思路，但为什么没有这么写呢？因为这样就已经可以pass了（遮盖了本人目前写不清楚的事实）
+例如，你目前正在检索从0经x1,x2,x3,x4,x5到达x6，假设你已经全部搜索从0经x1,x2,x3,x4,x5到达x6的方案，
+不妨设数字序就是目前已经能够计算过的从0到x6经x1,x2,x3,x4,x5的最便宜方案
+这样，如果你进一步计算时，需要从0经x1,x2,x3,x4,x5到达x6，而你的顺序不是数字序（也就不是局部花费最小的方案），则可以直接剪枝
+不过，这样很消耗储存空间，为此对于31个城市以内的，可以用位运算和一个unsigned型数储存
+给出两种这样的大佬解法以供参考
+*/
+int area[N][N],num[N],sum=100000;//area储存价格，num代表每次到访城市名，sum代表总消费
+bool visit[N] = { 0 };//visit代表是否已到访
+void math(int tol,int n,int m) {//tol代表目前总价，n代表总数，m代表循环次数，m初始为1
+	if (m == n) {
+		sum = min(tol+area[num[m-1]][num[m]],sum);//搜索到最后，计算总价
+		return;
+	}
+	for (int i = 1; i < n; i++) {
+		if (!visit[i]) {
+			num[m] = i;
+			visit[i] = 1;
+			if (tol + area[num[m - 1]][num[m]] > sum) {//如果半程就以超过已有最优总价则剪枝
+				visit[i] = 0; return;
+			}
+			math(tol+area[num[m-1]][num[m]],n, m + 1);//否则继续向下进行搜索
+			visit[i] = 0;
+		}
+	}
+	return;
+}
+
+int main() {
+	int n; cin >> n;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			cin >> area[i][j];
+		}
+	}
+	num[n] =num[0]= 0;//首末位置为初始城市，不妨视为0
+	math(0,n, 1);
+	cout << sum;
+	return 0;
+}
